@@ -1,0 +1,18 @@
+# Visión
+opencv-python<4.12
+mediapipe==0.10.21
+numpy>=1.26.0,<2.0.0
+
+# GUI mejorada
+customtkinter>=5.2.0
+
+# Control de teclado
+pynput>=1.7.7
+
+# Reportes y gráficas
+fpdf2>=2.8.0
+matplotlib>=3.8.0
+
+pillow>=10.0.0
+tensorflow>=2.18.0
+fer>=25.10.0
