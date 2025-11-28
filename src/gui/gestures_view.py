@@ -13,7 +13,8 @@ class GesturesWindow(ctk.CTkToplevel):
         super().__init__(master)
 
         self.title("Detector de gestos")
-        self.geometry("900x800")
+        self._center_window(900, 720)
+        self.resizable(True, True)  # ✅ se puede redimensionar
 
         self.grab_set()  # ventana modal
 
@@ -30,29 +31,50 @@ class GesturesWindow(ctk.CTkToplevel):
         # Variable para activar/desactivar control de teclado
         self.control_enabled = ctk.BooleanVar(value=False)
 
-        # --- Widgets ---
-        title = ctk.CTkLabel(
-            self,
-            text="Detector de gestos",
-            font=("Arial", 22),
-        )
-        title.pack(pady=10)
+        # ====== LAYOUT GENERAL ======
+        root_frame = ctk.CTkFrame(self, corner_radius=15)
+        root_frame.pack(expand=True, fill="both", padx=20, pady=20)
 
-        # Label para el video
-        self.video_label = ctk.CTkLabel(self, text="Iniciando cámara...")
-        self.video_label.pack(pady=10)
+        # Título y subtítulo (fijos arriba)
+        title = ctk.CTkLabel(
+            root_frame,
+            text="Detector de gestos",
+            font=("Arial", 24, "bold"),
+        )
+        title.pack(pady=(10, 5))
+
+        subtitle = ctk.CTkLabel(
+            root_frame,
+            text="Reconocimiento de gestos de mano y control de teclado",
+            font=("Arial", 13),
+        )
+        subtitle.pack(pady=(0, 10))
+
+        # ==== CONTENIDO SCROLLABLE (video + mapeos) ====
+        scroll_frame = ctk.CTkScrollableFrame(
+            root_frame,
+            corner_radius=15,
+            label_text="",  # sin título
+        )
+        scroll_frame.pack(expand=True, fill="both", padx=5, pady=5)
+
+        # Frame para video
+        video_frame = ctk.CTkFrame(scroll_frame, corner_radius=15)
+        video_frame.pack(pady=10)
+        self.video_label = ctk.CTkLabel(video_frame, text="Iniciando cámara...")
+        self.video_label.pack(padx=10, pady=10)
 
         # Label para mostrar el gesto detectado
         self.gesture_label = ctk.CTkLabel(
-            self,
+            scroll_frame,
             text="Gesto: ---",
             font=("Arial", 18),
         )
         self.gesture_label.pack(pady=10)
 
-        # --- Panel de configuración de teclas ---
-        config_frame = ctk.CTkFrame(self)
-        config_frame.pack(pady=10, fill="x", padx=20)
+        # Panel de configuración de teclas
+        config_frame = ctk.CTkFrame(scroll_frame)
+        config_frame.pack(pady=10, fill="x", padx=10)
 
         switch = ctk.CTkSwitch(
             config_frame,
@@ -63,10 +85,9 @@ class GesturesWindow(ctk.CTkToplevel):
 
         self.mapping_entries: dict[str, ctk.CTkEntry] = {}
 
-        # Helper para crear filas
         def add_mapping_row(parent, gesture_name: str, label_text: str, default_key: str):
             row = ctk.CTkFrame(parent)
-            row.pack(pady=5, fill="x", padx=10)
+            row.pack(pady=3, fill="x", padx=10)
             lbl = ctk.CTkLabel(row, text=f"{label_text} → tecla:")
             lbl.pack(side="left", padx=5)
             entry = ctk.CTkEntry(row, width=60)
@@ -74,17 +95,17 @@ class GesturesWindow(ctk.CTkToplevel):
             entry.insert(0, default_key)
             self.mapping_entries[gesture_name] = entry
 
-        # OPEN_HAND
-        add_mapping_row(config_frame, "OPEN_HAND", "OPEN_HAND", "d")  # ej: derecha
+        # OPEN_HAND (🖐)
+        add_mapping_row(config_frame, "OPEN_HAND", "OPEN_HAND (🖐)", "d")
 
-        # FIST
-        add_mapping_row(config_frame, "FIST", "FIST", "a")  # ej: izquierda
+        # FIST (✊)
+        add_mapping_row(config_frame, "FIST", "FIST (✊)", "a")
 
-        # PEACE (dos dedos)
-        add_mapping_row(config_frame, "PEACE", "PEACE (✌)", "w")  # ej: arriba
+        # PEACE (✌)
+        add_mapping_row(config_frame, "PEACE", "PEACE (✌)", "w")
 
-        # INDEX (un dedo)
-        add_mapping_row(config_frame, "INDEX", "INDEX (☝)", "s")  # ej: abajo
+        # INDEX (☝)
+        add_mapping_row(config_frame, "INDEX", "INDEX (☝)", "s")
 
         # Botón para aplicar el mapeo
         btn_apply = ctk.CTkButton(
@@ -94,9 +115,12 @@ class GesturesWindow(ctk.CTkToplevel):
         )
         btn_apply.pack(pady=10, padx=10, anchor="w")
 
-        # Botón cerrar
-        btn_close = ctk.CTkButton(self, text="Cerrar", command=self.close_window)
-        btn_close.pack(pady=10)
+        # ==== BOTÓN CERRAR (fijo abajo, fuera del scroll) ====
+        buttons_frame = ctk.CTkFrame(root_frame, fg_color="transparent")
+        buttons_frame.pack(pady=(5, 0))
+
+        btn_close = ctk.CTkButton(buttons_frame, text="Cerrar", command=self.close_window)
+        btn_close.pack(pady=5)
 
         self.protocol("WM_DELETE_WINDOW", self.close_window)
 
@@ -109,6 +133,15 @@ class GesturesWindow(ctk.CTkToplevel):
             self.update_frame()
         else:
             self.video_label.configure(text="No se pudo abrir la cámara")
+
+    def _center_window(self, width: int, height: int):
+        """Centra la ventana en la pantalla."""
+        self.update_idletasks()
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        x = (screen_w - width) // 2
+        y = (screen_h - height) // 3
+        self.geometry(f"{width}x{height}+{x}+{y}")
 
     def apply_mapping(self):
         """Lee las entradas de texto y actualiza el mapeo gesto->tecla."""
@@ -127,7 +160,6 @@ class GesturesWindow(ctk.CTkToplevel):
             self.after(50, self.update_frame)
             return
 
-        # Procesar con MediaPipe Hands
         frame_annotated, landmarks_list = self.hand_tracker.process(frame)
 
         gesture = "UNKNOWN"
@@ -155,7 +187,7 @@ class GesturesWindow(ctk.CTkToplevel):
 
         self.gesture_label.configure(text=display_text)
 
-        # Convertimos el frame anotado a RGB para mostrarlo en Tkinter
+        # Mostrar frame en la UI
         frame_rgb = cv2.cvtColor(frame_annotated, cv2.COLOR_BGR2RGB)
         image = Image.fromarray(frame_rgb)
         image = image.resize((800, 500), Image.LANCZOS)

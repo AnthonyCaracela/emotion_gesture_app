@@ -35,8 +35,8 @@ Las dependencias se encuentran en `requirements.txt` e incluyen, entre otras:
 
 ```bash
 # 1. Clonar el repositorio (cuando ya esté en GitHub)
-git clone https://github.com/tu_usuario/tu_repositorio.git
-cd tu_repositorio
+git clone https://github.com/AnthonyCaracela/emotion_gesture_app.git
+cd emotion_gesture_app
 
 # 2. Crear y activar entorno virtual (Windows PowerShell)
 python -m venv .venv
