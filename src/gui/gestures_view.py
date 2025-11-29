@@ -107,6 +107,9 @@ class GesturesWindow(ctk.CTkToplevel):
         # INDEX (☝)
         add_mapping_row(config_frame, "INDEX", "INDEX (☝)", "s")
 
+        # LIKE (👍)
+        add_mapping_row(config_frame, "LIKE", "LIKE (👍)", "l")
+
         # Botón para aplicar el mapeo
         btn_apply = ctk.CTkButton(
             config_frame,
